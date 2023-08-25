@@ -59,6 +59,8 @@ namespace Freenex.FeexRanks
                 {"level_up_kit", "You went up and received the kit {0}."},
                 {"level_up_rank", "You went up and recieved the permission rank {0}."},
                 {"level_up_uconomy", "You went up and received {0}."},
+                {"level_up_experience","You went up and received {0} experience" },
+                {"level_up_vehicle","You went up and received vehicle,named {0} " },
                 {"level_up_global", "{2} went up: {1} with {0} points."},
                 {"event_ACCURACY", "You received {0} points. ({1} points)"},
                 {"event_ARENA_WINS", "You received {0} points. ({1} points)"},
@@ -184,7 +186,7 @@ namespace Freenex.FeexRanks
                     Translate("level_up_global", newPoints, configLevelNew.Name, player.DisplayName),
                     configNotificationColorGlobal);
 
-            if (configLevelNew.KitReward)
+            if (configLevelNew.KitItemReward)
                 try
                 {
                     KitReward(configLevelNew, player);
@@ -203,17 +205,6 @@ namespace Freenex.FeexRanks
                 {
                     Logger.LogError($"Issue occured while giving a permission group reward: {ex.Message}");
                 }
-
-            if (!configLevelNew.UconomyReward) return;
-
-            try
-            {
-                UconomyReward(configLevelNew, player);
-            }
-            catch (Exception ex)
-            {
-                Logger.LogError($"Issue occured while giving a uconomy reward: {ex.Message}");
-            }
         }
 
         public Level GetLevel(int points)
@@ -238,10 +229,40 @@ namespace Freenex.FeexRanks
             foreach (var item in rewardKit.Items)
                 if (!player.GiveItem(item.ItemId, item.Amount))
                     Logger.Log($"Failed giving a item to {player.CharacterName} ({item.ItemId}, {item.Amount})");
-            player.Experience += rewardKit.XP.Value;
 
-            if (level.KitNotify)
+            if (level.KitItemNotify)
                 UnturnedChat.Say(player, Translate("level_up_kit", level.KitName), configNotificationColor);
+
+            if(level.KitUconomyReward && rewardKit.Money.HasValue)
+            {
+                Uconomy.Instance.Database.IncreaseBalance(player.Id, rewardKit.Money.Value);
+                if (level.UconomyNotify)
+                    UnturnedChat.Say(player,
+                        Translate("level_up_uconomy",
+                            rewardKit.Money +
+                            Uconomy.Instance.Configuration.Instance.MoneyName),
+                        configNotificationColor);
+            }
+
+            if(level.KitExperienceReward && rewardKit.XP.HasValue)
+            {
+                player.Experience += rewardKit.XP.Value;
+                if (level.ExperienceNotify)
+                    UnturnedChat.Say(player,
+                        Translate("level_up_experience",
+                            rewardKit.XP),
+                        configNotificationColor);
+            }
+
+            if(level.VehicleReward && rewardKit.Vehicle.HasValue)
+            {
+               bool success = player.GiveVehicle(rewardKit.Vehicle.Value);
+                if (success && level.VehicleNotify)
+                    UnturnedChat.Say(player,
+                        Translate("level_up_vehicle",
+                            Assets.find(EAssetType.VEHICLE,rewardKit.Vehicle.Value).name),
+                        configNotificationColor);
+            }
         }
 
         private void PermissionGroupReward(Level level, IRocketPlayer player)
@@ -261,16 +282,5 @@ namespace Freenex.FeexRanks
                     break;
             }
         }
-
-        private void UconomyReward(Level level, IRocketPlayer player)
-        {
-            Uconomy.Instance.Database.IncreaseBalance(player.Id, level.UconomyAmount);
-            if (level.UconomyNotify)
-                UnturnedChat.Say(player,
-                    Translate("level_up_uconomy",
-                        level.UconomyAmount +
-                        Uconomy.Instance.Configuration.Instance.MoneyName),
-                    configNotificationColor);
-        }
     }
-}
+} 

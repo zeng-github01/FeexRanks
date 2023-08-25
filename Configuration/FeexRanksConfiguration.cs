@@ -51,14 +51,14 @@ namespace Freenex.FeexRanks.Configuration
                 new Level {Points = 0, Name = "Pig"},
                 new Level
                 {
-                    Points = 100, Name = "Small Zombie", UconomyReward = true, UconomyNotify = true, UconomyAmount = 100
+                    Points = 100, Name = "Small Zombie", KitUconomyReward = true, UconomyNotify = true
                 },
-                new Level {Points = 200, Name = "Zombie", KitReward = true, KitNotify = true, KitName = "Zombie"},
+                new Level {Points = 200, Name = "Zombie", KitItemReward = true, KitItemNotify = true, KitName = "Zombie"},
                 new Level
                 {
-                    Points = 500, Name = "Giant Zombie", KitReward = true, KitNotify = true, KitName = "Giant Zombie",
+                    Points = 500, Name = "Giant Zombie", KitItemReward = true, KitItemNotify = true, KitName = "Giant Zombie",
                     PermissionGroupReward = true, PermissionGroupNotify = true, PermissionGroupName = "VIP",
-                    UconomyReward = true, UconomyNotify = false, UconomyAmount = 200
+                    KitUconomyReward = true, UconomyNotify = false
                 }
             };
         }
